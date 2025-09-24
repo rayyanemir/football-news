@@ -23,7 +23,7 @@ def show_main(request):
 
     context = {
         'npm' : '2406345375',
-        'name': 'Rayyan Emir Muhammad',
+        'name': request.user.username,
         'class': 'PBP B',
         'news_list': news_list,
         'last_login': request.COOKIES.get('last_login', 'Never')
@@ -107,12 +107,30 @@ def login_user(request):
             return response
     else:
         form = AuthenticationForm(request)
-        context = {'form': form}
-        return render(request, 'login.html', context)
+    context = {'form': form}
+    return render(request, 'login.html', context)
 
 def logout_user(request):
     logout(request)
     response = HttpResponseRedirect(reverse('main:login'))
     response.delete_cookie('last_login')
     return response
+
+def edit_news(request, id):
+    news = get_object_or_404(News, pk=id)
+    form = NewsForm(request.POST or None, instance=news)
+    if form.is_valid() and request.method == 'POST':
+        form.save()
+        return redirect('main:show_main')
+
+    context = {
+        'form': form
+    }
+
+    return render(request, "edit_news.html", context)
+
+def delete_news(request, id):
+    news = get_object_or_404(News, pk=id)
+    news.delete()
+    return HttpResponseRedirect(reverse('main:show_main'))
 
